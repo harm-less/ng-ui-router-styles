@@ -1,0 +1,8 @@
+#box {
+    background-color: deeppink;
+    color: white;
+}
+
+#box:before {
+    content: 'BAZ'
+}

@@ -1,0 +1,8 @@
+#box {
+    background-color: #0b97c4;
+    color: white;
+}
+
+#box:before {
+    content: 'QUX'
+}

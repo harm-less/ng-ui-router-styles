@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html ng-app="betsol.uiRouterStyles.test">
+
+<head>
+    <title>E2E Tests</title>
+</head>
+
+<body>
+
+    <ui-view></ui-view>
+
+    <script src="/vendor/angular/angular.js"></script>
+    <script src="/vendor/angular-ui-router/release/angular-ui-router.js"></script>
+    <!--<script src="/vendor/betsol-load-stylesheet/dist/betsol-load-stylesheet.js"></script>-->
+    <script src="/vendor/betsol-ng-ui-router-styles/scripts/betsol-ng-ui-router-styles.js"></script>
+    <script type="application/javascript">
+        (function (angular) {
+            'use strict';
+            angular
+                .module('betsol.uiRouterStyles.test', [
+                    'ui.router',
+                    'betsol.uiRouterStyles'
+                ])
+                .config(function ($stateProvider) {
+                    $stateProvider
+                        .state('$', {
+                            abstract: true,
+                            template: '<div id="box"></div>',
+                            data: {
+                                css: '/css/root.css'
+                            }
+                        })
+                        .state('foo', {
+                            url: '/foo',
+                            parent: '$',
+                            data: {
+                                css: {
+                                    foo: '/css/foo.css'
+                                }
+                            }
+                        })
+                        .state('bar', {
+                            url: '/bar',
+                            parent: '$',
+                            data: {
+                                css: {
+                                    bar: '/css/bar.css'
+                                }
+                            }
+                        })
+                        .state('baz', {
+                            url: '/baz',
+                            parent: 'bar',
+                            data: {
+                                css: {
+                                    bar: '/css/baz.css'
+                                }
+                            }
+                        })
+                        .state('qux', {
+                            url: '/qux',
+                            parent: 'baz',
+                            data: {
+                                css: [
+                                    '/css/border.css',
+                                    { id: 'bar', url: '/css/qux.css' },
+                                    { url: '/css/margin.css' }
+                                ]
+                            }
+                        })
+                    ;
+                })
+                .run(function ($rootScope) {
+                    console.log('$rootScope.$on');
+                    $rootScope.$on('stylesLoaded', function () {
+                        alert('ALL STYLES ARE LOADED NOW!');
+                    });
+                })
+            ;
+        })(angular);
+    </script>
+
+</body>
+
+</html>
