@@ -2,18 +2,17 @@
 
   'use strict';
 
-  var stylesLoadedEventName = 'stylesLoaded';
+  var resolveName = '@loadStyles';
 
   var nextResourceId = 1;
   var addedLinkElements = [];
-  var $q;
+  var targetState = null;
 
   angular.module('betsol.uiRouterStyles', ['ui.router'])
 
-    /**
-     * Using data decorator to normalize style definitions.
-     */
-    .config(function ($stateProvider) {
+    .config(function ($stateProvider, $provide) {
+
+      // Using data decorator to normalize style definitions.
       $stateProvider.decorator('data', function (state, parent) {
         var data = parent(state);
         if ('undefined' !== typeof data.css) {
@@ -21,49 +20,44 @@
         }
         return data;
       });
+
+      // Adding style resolve function for each registered state.
+      $stateProvider.decorator('resolve', function (state, parent) {
+        var definition = parent ? parent(state) : state.resolve || {};
+        definition[resolveName] = function ($state, $q) {
+          if (targetState && targetState.name == state.name) {
+            // Loading styles only when the resolve function of the target state is hit.
+            // We don't want to load styles multiple times for each resolve function in the chain!
+            return loadStylesForState(state, $state, $q);
+          }
+        };
+        return definition;
+      });
+
+      // Forcing state reloading in order to always trigger resolve re-evaluation.
+      $provide.decorator('$state', function ($delegate) {
+        var originalTransitionTo = $delegate.transitionTo;
+        $delegate.transitionTo = function () {
+          var optionsIndex = 2;
+          arguments[optionsIndex] = angular.extend({
+            reload: true
+          }, arguments[optionsIndex]);
+          return originalTransitionTo.apply(originalTransitionTo, arguments);
+        };
+        return $delegate;
+      });
+
     })
 
-    .run(function ($rootScope, $state, $injector) {
+    .run(function ($rootScope) {
 
-      // Making $q globally available to the module.
-      $q = $injector.get('$q');
+      $rootScope.$on('$stateChangeStart', function (event, toState) {
 
-      /**
-       * Updating styles when route starts to change.
-       */
-      $rootScope.$on('$stateChangeStart', function (event, toState, toParams, fromState, fromParams) {
-
-        // Building chain of states from top to bottom.
-        var states = [];
-        var state = toState;
-        do {
-          states.unshift(state);
-          state = (state.parent ? $state.get(state.parent) : null);
-        } while (state);
-
-        // Merging style definitions from all states together.
-        var definitions = {};
-        angular.forEach(states, function (state) {
-          if (state.data && state.data.css) {
-            angular.extend(definitions, state.data.css);
-          }
-        });
-
-        // Removing all previously loaded styles first.
-        clearStyleDefinitions();
-
-        // Adding required styles one-by-one.
-        var promises = [];
-        angular.forEach(definitions, function (definition) {
-          promises.push(
-            loadStyleDefinition(definition)
-          );
-        });
-
-        // Firing an event when all styles are loaded.
-        $q.all(promises).then(function () {
-          $rootScope.$broadcast(stylesLoadedEventName);
-        });
+        // Saving target state globally to later use it in resolve function.
+        // Assuming that this event is called before the «resolves» are evaluated.
+        // Right now UI Routers doesn't provide a way to access target state
+        // from the resolve function.
+        targetState = toState;
 
       });
 
@@ -84,6 +78,48 @@
 
   ;
 
+
+  /**
+   * Loads required styles for the specified state.
+   *
+   * @param {object} state
+   * @param {object} $state
+   * @param {object} $q
+   *
+   * @returns {Promise}
+   */
+  function loadStylesForState (state, $state, $q) {
+
+    // Building chain of states from top to bottom.
+    var stateChain = [];
+    do {
+      stateChain.unshift(state);
+      state = (state.parent ? $state.get(state.parent) : null);
+    } while (state);
+
+    // Merging style definitions from all states together.
+    var definitions = {};
+    angular.forEach(stateChain, function (state) {
+      if (state.data && state.data.css) {
+        angular.extend(definitions, state.data.css);
+      }
+    });
+
+    // Removing all previously loaded styles first.
+    clearStyleDefinitions();
+
+    // Adding required styles one-by-one.
+    var promises = [];
+    angular.forEach(definitions, function (definition) {
+      promises.push(
+        loadStyleDefinition(definition, $q)
+      );
+    });
+
+    // Firing an event when all styles are loaded.
+    return $q.all(promises);
+
+  }
 
   /**
    * Normalizes style definitions specified by user in the state configuration.
@@ -154,19 +190,24 @@
    * Adds <link> element to the page according to the specified style definition.
    *
    * @param {object} definition
+   * @param {object} $q
    *
    * @return {Promise}
    */
-  function loadStyleDefinition (definition) {
+  function loadStyleDefinition (definition, $q) {
 
     var deferred = $q.defer();
 
     if (window.loadStylesheet) {
-      var linkElement = window.loadStylesheet(definition.url, function () {
+      if (definition.url) {
+        var linkElement = window.loadStylesheet(definition.url, function () {
+          deferred.resolve();
+        });
+        // Maintaining convenient index of all added link elements.
+        addedLinkElements.push(linkElement);
+      } else {
         deferred.resolve();
-      });
-      // Maintaining convenient index of all added link elements.
-      addedLinkElements.push(linkElement);
+      }
     } else {
       log('betsol-load-stylesheet module must be loaded');
       deferred.reject();

@@ -9,9 +9,24 @@
 
     <ui-view></ui-view>
 
+    <ul>
+        <li>
+            <a ui-sref="foo">foo</a>
+        </li>
+        <li>
+            <a ui-sref="bar">bar</a>
+        </li>
+        <li>
+            <a ui-sref="baz">bar/baz</a>
+        </li>
+        <li>
+            <a ui-sref="qux">bar/baz/qux</a>
+        </li>
+    </ul>
+
     <script src="/vendor/angular/angular.js"></script>
     <script src="/vendor/angular-ui-router/release/angular-ui-router.js"></script>
-    <!--<script src="/vendor/betsol-load-stylesheet/dist/betsol-load-stylesheet.js"></script>-->
+    <script src="/vendor/betsol-load-stylesheet/dist/betsol-load-stylesheet.js"></script>
     <script src="/vendor/betsol-ng-ui-router-styles/scripts/betsol-ng-ui-router-styles.js"></script>
     <script type="application/javascript">
         (function (angular) {
@@ -69,12 +84,6 @@
                             }
                         })
                     ;
-                })
-                .run(function ($rootScope) {
-                    console.log('$rootScope.$on');
-                    $rootScope.$on('stylesLoaded', function () {
-                        alert('ALL STYLES ARE LOADED NOW!');
-                    });
                 })
             ;
         })(angular);

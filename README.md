@@ -4,22 +4,20 @@
 [![npm version](https://badge.fury.io/js/betsol-ng-ui-router-styles.svg)](http://badge.fury.io/js/betsol-ng-ui-router-styles)
 
 
-This module for Angular.js allows you to specify different CSS resources
-for different routes/states. It will load required resources on enter and
-release on exit. This will allow you to split your application into
-fully-independent sections.
+This module for Angular.js [UI Router][ui-router] allows you to specify
+CSS-resources for different states. It will make sure that specified
+styles are loaded before the state is rendered.
+
+With it, you could split your application into fully-independent layout
+sections and get rid of style conflicts once and for all!
 
 
 ## Features
 
-- Simple installation
+- Simple installation, no directives needed
 - Straightforward and flexible resource definition
-- Supports [ui-router][ui-router]
 - Supports named resources with ability to override them down the chain
-- Fires event when all CSS resources are loaded
-
-> Original `ng-route` is not yet supported.
-> Please consider using `ui-router` instead.
+- All CSS is loaded during the `resolve` stage
 
 
 ## Installation
@@ -55,12 +53,66 @@ var application = angular.module('application', [
 
 ## Usage
 
-@todo
+```javascript
+.config(function ($stateProvider) {
+  $stateProvider
+    .state('root', {
+      abstract: true,
+      data: {
+        // Single un-named resource defined:
+        // Globally for entire application.
+        css: '/css/root.css'
+      }
+    })
+      .state('home', {
+        url: '/',
+        parent: 'root',
+        data: {
+          // Multiple named resources defined:
+          // You could override them down the chain if you want.
+          css: {
+            home: '/css/home.css',
+            dashboard: '/css/dashboard.css'
+          }
+        }
+      })
+        .state('home-about', {
+          url: '/about',
+          parent: 'home',
+          data: {
+            css: {
 
+              // Disabling parent named resource:
+              // You could also override it if you want.
+              dashboard: null,
 
-## API
+              // Adding another named resource:
+              about: '/css/about.css',
+            }
+          }
+        })
+      .state('sign-up', {
+        url: '/sign-up',
+        parent: 'root',
+        data: {
+          // Mixed array-style definition.
+          css: [
 
-@todo
+            // Un-named resource defined by URL:
+            '/css/forms.css',
+
+            // Complete resource definition object provided:
+            { id: 'sign-up', url: '/css/sign-up.css' },
+
+            // Minimal resource definition object with no name:
+            { url: '/css/forms-extra.css' }
+
+          ]
+        }
+      })
+  ;
+})
+```
 
 
 ## Changelog
@@ -80,11 +132,6 @@ link via [E-Mail][email]. I will be glad to help.
 Have any ideas or propositions? Feel free to contact me by [E-Mail][email].
 
 Cheers!
-
-
-## FAQ
-
-@todo
 
 
 ## Developer guide
