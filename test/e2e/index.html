@@ -3,9 +3,14 @@
 
 <head>
     <title>E2E Tests</title>
+    <style>
+        body.loading {
+            background-color: dimgrey;
+        }
+    </style>
 </head>
 
-<body>
+<body ng-class="{ loading: loading }">
 
     <ui-view></ui-view>
 
@@ -84,6 +89,17 @@
                             }
                         })
                     ;
+                })
+                .run(function ($rootScope) {
+                    $rootScope.loading = true;
+                    $rootScope.$on('uiRouterStyles.loadingStarted', function () {
+                        console.log('uiRouterStyles.loadingStarted');
+                        $rootScope.loading = true;
+                    });
+                    $rootScope.$on('uiRouterStyles.loadingFinished', function () {
+                        console.log('uiRouterStyles.loadingFinished');
+                        $rootScope.loading = false;
+                    });
                 })
             ;
         })(angular);

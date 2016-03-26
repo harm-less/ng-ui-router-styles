@@ -54,65 +54,83 @@ var application = angular.module('application', [
 ## Usage
 
 ```javascript
-.config(function ($stateProvider) {
-  $stateProvider
-    .state('root', {
-      abstract: true,
-      data: {
-        // Single un-named resource defined:
-        // Globally for entire application.
-        css: '/css/root.css'
-      }
-    })
-      .state('home', {
-        url: '/',
-        parent: 'root',
+
+angular
+  .module('application', [
+    'betsol.uiRouterStyles'
+  ])
+  .config(function ($stateProvider) {
+    $stateProvider
+      .state('root', {
+        abstract: true,
         data: {
-          // Multiple named resources defined:
-          // You could override them down the chain if you want.
-          css: {
-            home: '/css/home.css',
-            dashboard: '/css/dashboard.css'
-          }
+          // Single un-named resource defined:
+          // Globally for entire application.
+          css: '/css/root.css'
         }
       })
-        .state('home-about', {
-          url: '/about',
-          parent: 'home',
+        .state('home', {
+          url: '/',
+          parent: 'root',
           data: {
+            // Multiple named resources defined:
+            // You could override them down the chain if you want.
             css: {
-
-              // Disabling parent named resource:
-              // You could also override it if you want.
-              dashboard: null,
-
-              // Adding another named resource:
-              about: '/css/about.css',
+              home: '/css/home.css',
+              dashboard: '/css/dashboard.css'
             }
           }
         })
-      .state('sign-up', {
-        url: '/sign-up',
-        parent: 'root',
-        data: {
-          // Mixed array-style definition.
-          css: [
+          .state('home-about', {
+            url: '/about',
+            parent: 'home',
+            data: {
+              css: {
 
-            // Un-named resource defined by URL:
-            '/css/forms.css',
+                // Disabling parent named resource:
+                // You could also override it if you want.
+                dashboard: null,
 
-            // Complete resource definition object provided:
-            { id: 'sign-up', url: '/css/sign-up.css' },
+                // Adding another named resource:
+                about: '/css/about.css',
+              }
+            }
+          })
+        .state('sign-up', {
+          url: '/sign-up',
+          parent: 'root',
+          data: {
+            // Mixed array-style definition.
+            css: [
 
-            // Minimal resource definition object with no name:
-            { url: '/css/forms-extra.css' }
+              // Un-named resource defined by URL:
+              '/css/forms.css',
 
-          ]
-        }
-      })
-  ;
-})
+              // Complete resource definition object provided:
+              { id: 'sign-up', url: '/css/sign-up.css' },
+
+              // Minimal resource definition object with no name:
+              { url: '/css/forms-extra.css' }
+
+            ]
+          }
+        })
+      ;
+    })
+;
+
+
 ```
+
+## Events
+
+This module fires the following events on the `$rootScope`:
+
+- `uiRouterStyles.loadingStarted` when loading of stylesheets is started
+- `uiRouterStyles.loadingFinished` when loading of stylesheets is finished
+
+You can use these events to, for example, hide the content of the page using some animation
+in order to prevent [FOUC][fouc].
 
 
 ## Changelog
@@ -186,3 +204,4 @@ THE SOFTWARE.
   [gulp]:      http://gulpjs.com/
   [repo-gh]:   https://github.com/betsol/ng-ui-router-styles
   [ui-router]: https://github.com/angular-ui/ui-router
+  [fouc]:      https://en.wikipedia.org/wiki/Flash_of_unstyled_content

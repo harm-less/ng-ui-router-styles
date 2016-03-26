@@ -95,5 +95,5 @@ gulp.task('test:e2e:server', function () {
 //==============//
 
 gulp.task('default', function (done) {
-  runSequence('build', 'test', done);
+  runSequence('build', done);
 });

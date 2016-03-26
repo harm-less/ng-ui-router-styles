@@ -2,7 +2,10 @@
 
   'use strict';
 
-  var resolveName = '@loadStyles';
+  var RESOLVE_NAME = '@loadStyles';
+  var EVENTS_NAMESPACE = 'uiRouterStyles';
+  var EVENT_LOADING_STARTED = 'loadingStarted';
+  var EVENT_LOADING_FINISHED = 'loadingFinished';
 
   var nextResourceId = 1;
   var addedLinkElements = [];
@@ -24,11 +27,11 @@
       // Adding style resolve function for each registered state.
       $stateProvider.decorator('resolve', function (state, parent) {
         var definition = parent ? parent(state) : state.resolve || {};
-        definition[resolveName] = function ($state, $q) {
+        definition[RESOLVE_NAME] = function ($state, $q, $rootScope) {
           if (targetState && targetState.name == state.name) {
             // Loading styles only when the resolve function of the target state is hit.
             // We don't want to load styles multiple times for each resolve function in the chain!
-            return loadStylesForState(state, $state, $q);
+            return loadStylesForState(state, $state, $q, $rootScope);
           }
         };
         return definition;
@@ -85,10 +88,13 @@
    * @param {object} state
    * @param {object} $state
    * @param {object} $q
+   * @param {object} $rootScope
    *
    * @returns {Promise}
    */
-  function loadStylesForState (state, $state, $q) {
+  function loadStylesForState (state, $state, $q, $rootScope) {
+
+    $rootScope.$broadcast(EVENTS_NAMESPACE + '.' + EVENT_LOADING_STARTED);
 
     // Building chain of states from top to bottom.
     var stateChain = [];
@@ -117,7 +123,9 @@
     });
 
     // Firing an event when all styles are loaded.
-    return $q.all(promises);
+    return $q.all(promises).then(function () {
+      $rootScope.$broadcast(EVENTS_NAMESPACE + '.' + EVENT_LOADING_FINISHED);
+    });
 
   }
 
