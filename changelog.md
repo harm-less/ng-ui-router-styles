@@ -1,5 +1,11 @@
 # betsol-ng-ui-router-styles changelog
 
+## Version 0.2.1
+(31 Mar 2016)
+
+- Fixed an issue with missing function annotation
+
+
 ## Version 0.2.0
 (27 Mar 2016)
 

@@ -1,6 +1,6 @@
 /**
  * betsol-ng-ui-router-styles - Load custom CSS for different routes
- * @version v0.2.0
+ * @version v0.2.1
  * @link https://github.com/betsol/ng-ui-router-styles
  * @license MIT
  *
@@ -34,15 +34,31 @@
 
       // Adding style resolve function for each registered state.
       $stateProvider.decorator('resolve', function (state, parent) {
-        var definition = parent ? parent(state) : state.resolve || {};
-        definition[RESOLVE_NAME] = function ($state, $q, $rootScope) {
+
+        resolveFunction.$inject = ['$state', '$q', '$rootScope'];
+        var definition = (parent ? parent(state) : (state.resolve || {}));
+
+        definition[RESOLVE_NAME] = resolveFunction;
+
+        return definition;
+
+        /**
+         * @ngInject
+         *
+         * @param {object} $state
+         * @param {object} $q
+         * @param {object} $rootScope
+         *
+         * @returns {Promise}
+         */
+        function resolveFunction ($state, $q, $rootScope) {
           if (targetState && targetState.name == state.name) {
             // Loading styles only when the resolve function of the target state is hit.
             // We don't want to load styles multiple times for each resolve function in the chain!
             return loadStylesForState(state, $state, $q, $rootScope);
           }
-        };
-        return definition;
+        }
+
       });
 
       // Forcing state reloading in order to always trigger resolve re-evaluation.

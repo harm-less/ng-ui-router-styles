@@ -1,7 +1,7 @@
 {
   "name": "betsol-ng-ui-router-styles",
   "description": "Load custom CSS for different routes",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "dist/betsol-ng-ui-router-styles.js",
   "ignore": [
     "src",
